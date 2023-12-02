@@ -35,7 +35,7 @@ public class SimuDrones extends Application {
     /** largeur du terrain en pixel*/
     int largeur = 800;
     /** heuteur du terrain en pixel*/
-    int hauteur = 950;
+    int hauteur = 900;
     /** délai en ms entre chaque etape de simulation*/
     int vitesse_intrus = 1;
     public static int tempo = 150;
@@ -65,9 +65,10 @@ public class SimuDrones extends Application {
         Scene scene = new Scene(troupe, largeur, hauteur, Color.BLACK);
         scene.setOnKeyPressed(e -> {
             KeyCode touche = e.getCode();
+            if(!intrus.getHasLost() && !intrus.getHasWon()) {
             for(int i = 0; i < vitesse_intrus; i++) {
                 intrus.déplacer(touche);
-                // test
+            }
             }
         });
         primaryStage.setTitle("Simu Drones...");
@@ -79,8 +80,9 @@ public class SimuDrones extends Application {
         creerParcellesEtImg();
         colorerParcelles();
         intrus = new Intrus(evt, taille / 2, taille / 2);
+
         long depart = System.currentTimeMillis();
-        addDrone(nb_drones);
+        addDroneAndIntrus(nb_drones);
         evt.avancer();
         Text temps = new Text("Temps survécu : 0");
         temps.setX(20);
@@ -113,16 +115,39 @@ public class SimuDrones extends Application {
                     if (intrus.surSortie() && intrus.isDonneeRecuperee()) {
                         victoire.setText("Vous avez gagné !");
                         victoire.setVisible(true);
+                        intrus.setHasWon(true);
+                        taille_champ = 0;
+                        temps_oubli = 0;
+                        donne.setText("");
+                        intrus.setCouleur(Color.TRANSPARENT);
+                        temps.setX(largeur/2 - 100);
+                        temps.setY(hauteur/2 - 70);
+                        for (Drone drone : lesDrones) {
+                            drone.setCouleur(Color.TRANSPARENT);
+                        }
+
+                    } else if (intrus.getTempsDeDetection() > 100) {
+                        intrus.setDonneeRecuperee(false);
+                        victoire.setX(largeur/2 - 100);
+                        victoire.setText("Perdu...");
+                        victoire.setFill(Color.DARKRED);
+                        victoire.setVisible(true);
                         taille_champ = 0;
                         temps_oubli = 0;
                         donne.setText("");
                         temps.setX(largeur/2 - 100);
                         temps.setY(hauteur/2 - 70);
+                        intrus.setCouleur(Color.TRANSPARENT);
+                        intrus.setHasLost(true);
+                        for (Drone drone : lesDrones) {
+                            drone.setCouleur(Color.TRANSPARENT);
+                        }
                     } else {
                         evt.avancer();
                         colorerParcelles();
                         temps.setText("Temps survécu : " + time);
                     }
+
                     champvisionintrus(intrus, taille_champ, temps_oubli);
                     if (intrus.isDonneeRecuperee()) {
                         donne.setVisible(true);
@@ -130,25 +155,32 @@ public class SimuDrones extends Application {
                     }
 
                     if (System.currentTimeMillis() - depart >= 5000) {
-                    for (Drone drone : lesDrones) {
+                        for (Drone drone : lesDrones) {
                             champvisiondrone(drone);
+
 
                             if (drone.getLastPlayerPositionX() != -1 && drone.getLastPlayerPositionY() != -1) {
                                 //System.out.println(System.currentTimeMillis() - drone.getLastDetection());
+                                intrus.setTempsDeDetection(System.currentTimeMillis() - intrus.getDerniereDetection());
+                                System.out.println(intrus.getTempsDeDetection());
                                 if (System.currentTimeMillis() - drone.getLastDetection() >= 3000) {
                                     drone.setLastPlayerPositionX(-1);
                                     drone.setLastPlayerPositionY(-1);
-                                    if (drone.isMega) {
-                                        drone.setCouleur(Color.BLUE);
-                                    } else {
-                                        drone.setCouleur(Color.LIGHTBLUE);
+                                    if (!intrus.getHasLost() && !intrus.getHasWon()) {
+                                        if (drone.isMega) {
+                                            drone.setCouleur(Color.BLUE);
+                                        } else {
+                                            drone.setCouleur(Color.LIGHTBLUE);
+                                        }
                                     }
 
                                 } else {
-                                    if (drone.isMega) {
-                                        drone.setCouleur(Color.DARKRED);
-                                    } else {
-                                        drone.setCouleur(Color.PALEVIOLETRED);
+                                    if (!intrus.getHasLost() && !intrus.getHasWon()) {
+                                        if (drone.isMega) {
+                                            drone.setCouleur(Color.DARKRED);
+                                        } else {
+                                            drone.setCouleur(Color.PALEVIOLETRED);
+                                        }
                                     }
 
                                 }
@@ -159,14 +191,14 @@ public class SimuDrones extends Application {
         littleCycle.setCycleCount(Timeline.INDEFINITE);
         littleCycle.play();
         //ecoute de evenements claviers
-        scene.setOnKeyTyped(e->agirSelonTouche( e.getCharacter(), littleCycle));
+
+            scene.setOnKeyTyped(e -> agirSelonTouche(e.getCharacter(), littleCycle));
     }
     void agirSelonTouche(String touche, Timeline chrono)
     {
-        switch (touche)
-        {
-            case "f"->chrono.play();
-            case "p"->chrono.stop();
+            switch (touche) {
+                case "f" -> chrono.play();
+                case "p" -> chrono.stop();
         }
     }
 
@@ -194,7 +226,7 @@ public class SimuDrones extends Application {
 
 
 
-    public void addDrone(int nb)
+    public void addDroneAndIntrus(int nb)
     {
         Color couleur = Color.LIGHTBLUE;
         lesDrones = new ArrayList<>();
@@ -265,7 +297,7 @@ public class SimuDrones extends Application {
                         cases[i][j].setOpacity(0);
                     }
                 }
-                else{
+                else {
                     cases[i][j].setOpacity(1);
                     memoire[i][j] = true;
                     memoireOubli[i][j] = System.currentTimeMillis();
@@ -298,6 +330,9 @@ public class SimuDrones extends Application {
     void updatePlayerPosition(int x, int y) {
         lesDrones.forEach(d -> {
             Direction nouvelleDirection = Direction.getDirectionTo(d.getParcelle().getX(), d.getParcelle().getY(), intrus.getPosition().getX(), intrus.getPosition().getY());
+            if (d.lastPlayerPositionX == -1 && d.lastPlayerPositionY == -1) {
+                intrus.setDerniereDetection(System.currentTimeMillis());
+            }
             if (d.isMega == true) {
                 d.setLastPlayerPositionX(intrus.getPosition().getX());
                 d.setLastPlayerPositionY(intrus.getPosition().getY());

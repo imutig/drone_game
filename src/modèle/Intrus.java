@@ -13,6 +13,11 @@ public class Intrus {
     Circle circle;
     private boolean donneeRecuperee = false;
     private boolean surSortie = false;
+    private boolean hasLost = false;
+    private boolean hasWon = false;
+    private long tempsDeDetection = 0;
+
+    private long derniereDetection = 0;
     public Circle champVision; // Champ de vision
     private boolean[][] memoire;
     private long[][] memoireOubli;
@@ -45,12 +50,45 @@ public class Intrus {
         this.circle = circle;
     }
 
+    public boolean getHasLost() {
+        return hasLost;
+    }
+
+    public boolean getHasWon() {
+        return hasWon;
+    }
+
+    public void setHasWon(boolean hasWon) {
+        this.hasWon = hasWon;
+    }
     public boolean isDonneeRecuperee() {
         return donneeRecuperee;
     }
 
+    public void setTempsDeDetection(long tempsDeDetection) {
+        this.tempsDeDetection = tempsDeDetection;
+    }
+
+    public long getTempsDeDetection() {
+        return tempsDeDetection;
+    }
+
+    public long getDerniereDetection() {
+        return derniereDetection;
+    }
+
+    public void setDerniereDetection(long time) {
+        derniereDetection = time;
+    }
+    public boolean hasLost() { return hasLost; }
+
+    public void setHasLost(boolean hasLost) { this.hasLost = hasLost; }
+
     public boolean surSortie() { return surSortie;}
 
+    public void setCouleur(Color couleur) {
+        circle.setFill(couleur);
+    }
     public void setDonneeRecuperee(boolean donneeRecuperee) {
         this.donneeRecuperee = donneeRecuperee;
     }

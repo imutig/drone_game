@@ -35,7 +35,7 @@ public class SimuDrones extends Application {
     /** largeur du terrain en pixel*/
     int largeur = 800;
     /** heuteur du terrain en pixel*/
-    int hauteur = 900;
+    int hauteur = 950;
     /** délai en ms entre chaque etape de simulation*/
     int vitesse_intrus = 1;
     public static int tempo = 150;

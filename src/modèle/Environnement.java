@@ -13,22 +13,14 @@ import modèle.Intrus;
 
 
 public class Environnement {
-    /**grille des parcelles de terrain*/
     Parcelle[][] grille;
-    /** taille de la grille */
-    public int taille;
+    public int taille; // Taille de la grille
 
-    /**les fourmis presentes*/
-    ArrayList<Drone> lesDrones;
+    ArrayList<Drone> lesDrones; // ArrayList des drones présents
 
-    /**lien vers l'application graphiquue*/
-    SimuDrones application;
+    SimuDrones application; // Lien vers l'application graphique
 
-
-    /**
-     * constructeur initialisant l'application et la taille,
-     * la grille et la liste des fourmis
-     */
+    // Constructeur initialisant l'application, la taille de la grille, la grille ainsi que les drones
     public Environnement(SimuDrones application, int taille) {
         this.application = application;
         this.taille = taille;
@@ -37,11 +29,7 @@ public class Environnement {
         init();
     }
 
-
-    /**
-     * remplit la grille de parcelles de type terrain
-     */
-    void init() {
+    void init() { // Associe à chaque case un type de terrain en fonction de règles bien spécifique
         for (int i = 0; i < taille; i++)
             for (int j = 0; j < taille; j++) {
                 if (Math.random() < 0.1) { // 5% de chance d'avoir un arbre dans une case
@@ -51,9 +39,9 @@ public class Environnement {
                 }
             }
 
-        int xDonnee = (int) (Math.random() * taille);
-        int yDonnee = (int) (Math.random() * taille);
-        grille[xDonnee][yDonnee] = new Parcelle(grille, xDonnee, yDonnee, TypeParcelle.Donnee, true);
+        int xDonnee = (int) (Math.random() * taille); // Un X aléatoire est associé à la donnée
+        int yDonnee = (int) (Math.random() * taille); // Un Y aléatoire est associé à la donnée
+        grille[xDonnee][yDonnee] = new Parcelle(grille, xDonnee, yDonnee, TypeParcelle.Donnee, true); // La parcelle aléatoire est update : sa variable "contientDonnee" devient true et son type devient donnee
 
         grille[0][taille / 2].setType(TypeParcelle.Sortie); // Sortie à gauche
         grille[taille - 1][taille / 2].setType(TypeParcelle.Sortie); // Sortie à droite

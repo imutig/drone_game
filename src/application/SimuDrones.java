@@ -37,18 +37,18 @@ public class SimuDrones extends Application {
     /** heuteur du terrain en pixel*/
     int hauteur = 900;
     /** délai en ms entre chaque etape de simulation*/
-    int vitesse_intrus = 1;
+    int vitesse_intrus = 1; // Vitesse de l'intrus
     public static int tempo = 150;
     /** troupe des elements graphiques*/
-    public static int nb_drones = 5;
+    public static int nb_drones = 10; // Nombre de drones présents sur le terrain (positions aléatoires)
     Group troupe;
-    private Intrus intrus;
-    ArrayList<Drone> lesDrones;
+    private Intrus intrus; // Déclaration de l'intrus
+    ArrayList<Drone> lesDrones; // Array contenant les drones
 
 
     /**lancement de l'application*/
     @Override
-    public void start(Stage primaryStage) {
+    public void start(Stage primaryStage) { // Fonction de démarrage
         taille = 100;
         construireScene(primaryStage);
     }
@@ -63,27 +63,26 @@ public class SimuDrones extends Application {
         //definir la scene principale
         troupe = new Group();
         Scene scene = new Scene(troupe, largeur, hauteur, Color.BLACK);
-        scene.setOnKeyPressed(e -> {
+        scene.setOnKeyPressed(e -> { // lorsque l'utilisateur appuie sur une touche on déplace l'intrus
             KeyCode touche = e.getCode();
-            if(!intrus.getHasLost() && !intrus.getHasWon()) {
-            for(int i = 0; i < vitesse_intrus; i++) {
+            if(!intrus.getHasLost() && !intrus.getHasWon()) { // seulement si l'intrus n'a ni perdu, ni gagné
+            for(int i = 0; i < vitesse_intrus; i++) { // la vitesse de l'intrus affecte le nombre de cases de déplacement par pression de la touche
                 intrus.déplacer(touche);
             }
             }
         });
         primaryStage.setTitle("Simu Drones...");
         primaryStage.setScene(scene);
-        //definir les acteurs
         evt = new Environnement(this,taille);
-        //definir les acteurs
-        cases = new ImgParcelle[taille][taille];
-        creerParcellesEtImg();
-        colorerParcelles();
-        intrus = new Intrus(evt, taille / 2, taille / 2);
+        cases = new ImgParcelle[taille][taille]; // tableau où les cases sont stockées
+        creerParcellesEtImg(); // creation des parcelles
+        colorerParcelles(); // coloration des parcelles
+        intrus = new Intrus(evt, taille / 2, taille / 2); // création de l'intrus
 
-        long depart = System.currentTimeMillis();
-        addDroneAndIntrus(nb_drones);
-        evt.avancer();
+        long depart = System.currentTimeMillis(); // variable stockant le temps de démarrage de la simulation
+        addDroneAndIntrus(nb_drones); // ajout des drones et de l'intrus sur la simulation
+        evt.avancer(); // lancement de la simulation
+        // Initialisation des différents textes à afficher en cas de victoire/défaite ou encore en HUD
         Text temps = new Text("Temps survécu : 0");
         temps.setX(20);
         temps.setY((40));
@@ -104,29 +103,29 @@ public class SimuDrones extends Application {
         victoire.setStyle("-fx-font-family: 'Arial Black'; -fx-font-size: 30; -fx-font-weight: bold; -fx-border-color: black;");
         troupe.getChildren().add(victoire);
         victoire.setVisible(false);
-        //afficher le theatre
+        //afficher le theatre des opérations
         primaryStage.show();
         //-----lancer le timer pour faire vivre la simulation
         Timeline littleCycle = new Timeline(new KeyFrame(Duration.millis(tempo),
                 event -> {
-                    long time = (System.currentTimeMillis() - depart) / 1000;
-                    int taille_champ = 100;
-                    int temps_oubli = 3000;
-                    if (intrus.surSortie() && intrus.isDonneeRecuperee()) {
+                    long time = (System.currentTimeMillis() - depart) / 1000; // variable qui récupère le temps de la simulation à partir du temps actuel - le temps de départ
+                    int taille_champ = 5; // taille du champ de vision
+                    int temps_oubli = 3000; // temps (en ms) après lequel l'intrus oublie l'environnement vu en champ de vision
+                    if (intrus.surSortie() && intrus.isDonneeRecuperee()) { // si l'intrus est sur la sortie et qu'il a recupère la donnée alors il gagne
                         victoire.setText("Vous avez gagné !");
                         victoire.setVisible(true);
                         intrus.setHasWon(true);
-                        taille_champ = 0;
-                        temps_oubli = 0;
+                        taille_champ = 0; // son champ est mis à 0 pour que l'écran devienne noir
+                        temps_oubli = 0; // son temps d'oubli à 0 pour que l'écran devienne noir
                         donne.setText("");
-                        intrus.setCouleur(Color.TRANSPARENT);
+                        intrus.setCouleur(Color.TRANSPARENT); // l'intrus devient transparent pour que l'écran soit totalement noir
                         temps.setX(largeur/2 - 100);
                         temps.setY(hauteur/2 - 70);
                         for (Drone drone : lesDrones) {
-                            drone.setCouleur(Color.TRANSPARENT);
+                            drone.setCouleur(Color.TRANSPARENT); // les drones deviennent transparents pour que l'écran soit totalement noir
                         }
 
-                    } else if (intrus.getTempsDeDetection() > 100) {
+                    } else if (intrus.getTempsDeDetection() > 10000) { // si l'intrus est détecté pendant + du temps en ms indiqué, l'intrus perd
                         intrus.setDonneeRecuperee(false);
                         victoire.setX(largeur/2 - 100);
                         victoire.setText("Perdu...");
@@ -142,31 +141,52 @@ public class SimuDrones extends Application {
                         for (Drone drone : lesDrones) {
                             drone.setCouleur(Color.TRANSPARENT);
                         }
-                    } else {
+                    } else { // Si l'intrus n'a ni gagné, ni perdu, alors la simulation continue et le temps survécu se met à jour
                         evt.avancer();
                         colorerParcelles();
                         temps.setText("Temps survécu : " + time);
                     }
 
-                    champvisionintrus(intrus, taille_champ, temps_oubli);
+                    champvisionintrus(intrus, taille_champ, temps_oubli); // on update le champ de vision de l'intrus à chaque itération
                     if (intrus.isDonneeRecuperee()) {
-                        donne.setVisible(true);
+                        donne.setVisible(true); // si l'intrus a récupéré la donnée on affiche un message pour l'indiquer en haut de l'écran
 
                     }
 
-                    if (System.currentTimeMillis() - depart >= 5000) {
+                    for (Drone drone1 : lesDrones) {
+                        for (Drone drone2 : lesDrones) { // Pour chaque couple possible de drone
+                            if (drone1 != drone2) { // On ne vérifie pas pour un drone avec lui même
+                                if (drone1.lastPlayerPositionX == -1 && drone2.lastPlayerPositionX == -1) { // Si l'intrus n'est pas détecté
+                                    if (drone1.getParcelle() == drone2.getParcelle()) { // Et que les drones sont sur la même case
+                                        if ((drone1.isMega == true && drone2.isMega == true) || (drone1.isMega == false && drone2.isMega == false)) {
+                                            // Et que les drones sont de même type (soit tous les deux MEGA, soit tous les deux non MEGA
+
+                                            drone1.setEstDesactive(true); // Ils sont désactivés
+                                            drone2.setEstDesactive(true);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    for (Drone drone : lesDrones) {
+                        if (drone.getEstDesactive() == true && intrus.getHasWon() == false && intrus.getHasLost() == false) { // si le drone est desactivé, il devient grisé
+                            drone.setCouleur(Color.GRAY);
+                        }
+                    }
+
+                    if (System.currentTimeMillis() - depart >= 5000) { // Après les 5 premières secondes, les drones peuvent détecter l'intrus (pour que l'intrus ne soit pas détecté instantannément)
                         for (Drone drone : lesDrones) {
                             champvisiondrone(drone);
-
-
                             if (drone.getLastPlayerPositionX() != -1 && drone.getLastPlayerPositionY() != -1) {
                                 //System.out.println(System.currentTimeMillis() - drone.getLastDetection());
                                 intrus.setTempsDeDetection(System.currentTimeMillis() - intrus.getDerniereDetection());
-                                System.out.println(intrus.getTempsDeDetection());
-                                if (System.currentTimeMillis() - drone.getLastDetection() >= 3000) {
+                                //System.out.println(intrus.getTempsDeDetection());
+                                if (System.currentTimeMillis() - drone.getLastDetection() >= 3000) { // Si aucun drone n'a détécté l'intrus depuis 3 secondes, la dernière position indiquée de tous les drones devient -1 ce qui leur indique de recommencer à patrouiller
                                     drone.setLastPlayerPositionX(-1);
                                     drone.setLastPlayerPositionY(-1);
-                                    if (!intrus.getHasLost() && !intrus.getHasWon()) {
+                                    if (!intrus.getHasLost() && !intrus.getHasWon() && drone.getEstDesactive() == false) { // si l'intrus n'a ni perdu, ni gagné, on set la couleur des drones (différentes selon s'ils sont MEGA ou non
                                         if (drone.isMega) {
                                             drone.setCouleur(Color.BLUE);
                                         } else {
@@ -175,7 +195,7 @@ public class SimuDrones extends Application {
                                     }
 
                                 } else {
-                                    if (!intrus.getHasLost() && !intrus.getHasWon()) {
+                                    if (!intrus.getHasLost() && !intrus.getHasWon() && drone.getEstDesactive() == false) { // si l'intrus n'a ni gagné ni perdu, et que l'intrus est détecté actuellement, ils deviennent rouges
                                         if (drone.isMega) {
                                             drone.setCouleur(Color.DARKRED);
                                         } else {
@@ -231,17 +251,17 @@ public class SimuDrones extends Application {
         Color couleur = Color.LIGHTBLUE;
         lesDrones = new ArrayList<>();
         for (int i = 0; i < nb; i++) {
-            if (Math.random() < 0.5) {
-                Drone d = evt.addDrone((int) (Math.random() * (95 - 5)), (int) (Math.random() * (95 - 5)));
+            if (Math.random() < 0.25) { // les drones ont 25% de chance d'être mega
+                Drone d = evt.addDrone((int) (Math.random() * (95 - 5)), (int) (Math.random() * (95 - 5))); // La position des drones est aléatoire
                 d.setMega(true);
                 Circle c = new Circle(largeur / 2d + 3 * espace / 2d, largeur / 2d + 3 * espace / 2d, espace);
                 d.setCircle(c);
-                c.setRadius(7.0f);
+                c.setRadius(7.0f); // les mega sont légèrement plus gros que les drones normaux
                 troupe.getChildren().add(c);
                 lesDrones.add(d);
-                d.setCouleur(Color.BLUE);
+                d.setCouleur(Color.BLUE); // ils sont également un peu plus foncés
             } else {
-                Drone d = evt.addDrone((int) (Math.random() * (95 - 5)), (int) (Math.random() * (95 - 5)));
+                Drone d = evt.addDrone((int) (Math.random() * (95 - 5)), (int) (Math.random() * (95 - 5))); // La position des drones est aléatoire
                 Circle c = new Circle(largeur / 2d + 3 * espace / 2d, largeur / 2d + 3 * espace / 2d, espace);
                 d.setCircle(c);
                 c.setRadius(5.0f);
@@ -250,7 +270,7 @@ public class SimuDrones extends Application {
                 d.setCouleur(couleur);
             }
         }
-
+        // création de l'intrus
         Circle intrusCircle = new Circle(intrus.getPosition().getX() * espace + espace / 2, intrus.getPosition().getY() * espace + espace / 2, espace / 2, Intrus.coulPleine);
         intrus.setCircle(intrusCircle);
         intrusCircle.setRadius(8.0f);
@@ -281,28 +301,39 @@ public class SimuDrones extends Application {
         return troupe;
     }
 
-    //l'intrus ne doit pas voir au dela de son champ de vision qui est de 3 cases (les cases qui se trouvent dans son champ de vison ont une opacité de 1
-    // Set the opacity of the cells outside the intruder's field of vision to 1
+    //l'intrus ne doit pas voir au delà de son champ de vision qui est une variable (les cases qui se trouvent dans son champ de vison ont une opacité de 1)
     public void champvisionintrus(Intrus intrus, int taille_champ, int temps_oubli){
 
         for (int i = 0; i < taille; i++) {
             for (int j = 0; j <taille; j++) {
                 //le champ de vision doit etre circulaire
                 double distance = Math.sqrt(Math.pow(intrus.getPosition().getX() - i, 2) + Math.pow(intrus.getPosition().getY() - j, 2));
-                boolean[][] memoire = intrus.getMemoire();
-                long[][] memoireOubli = intrus.getMemoireOubli();
-                // Check if the distance is greater than the field of vision radius
-                if (distance > taille_champ) {
+                boolean[][] memoire = intrus.getMemoire(); // tableau de memoire
+                long[][] memoireOubli = intrus.getMemoireOubli(); // tableau du temps de la dernière mémorisation pour pouvoir oublier après un temps
+                // Si la distance est supérieure au champs de vision, les cases deviennent opaques
+                if (distance > taille_champ && distance <= taille_champ+3 && !(intrus.getHasLost() || intrus.getHasWon())) {
+                    if (!memoire[i][j]) {
+                        cases[i][j].setOpacity(0.8);
+                    }
+                } else if (distance > taille_champ+3 && distance <= taille_champ+5 && !(intrus.getHasLost() || intrus.getHasWon())) {
+                    if (!memoire[i][j]) {
+                        cases[i][j].setOpacity(0.6);
+                    }
+                } else if (distance > taille_champ+5 && distance <= taille_champ+7 && !(intrus.getHasLost() || intrus.getHasWon())) {
+                    if (!memoire[i][j]) {
+                        cases[i][j].setOpacity(0.4);
+                    }
+                } else if (distance > taille_champ+7 || intrus.getHasWon() || intrus.getHasLost()) {
                     if (!memoire[i][j]) {
                         cases[i][j].setOpacity(0);
                     }
                 }
-                else {
+                else { // sinon elles sont visibles et le temps de l'oubli est mis à jour
                     cases[i][j].setOpacity(1);
                     memoire[i][j] = true;
                     memoireOubli[i][j] = System.currentTimeMillis();
                 }
-
+                // si le temps de l'oubli est dépassé alors les cases redeviennent opaques
                 if (System.currentTimeMillis() - memoireOubli[i][j] >=  temps_oubli) {
                     memoire[i][j] = false;
                     memoireOubli[i][j] = 0;
@@ -317,7 +348,7 @@ public class SimuDrones extends Application {
 
         //le champ de vision doit etre circulaire
         double distance = Math.sqrt(Math.pow(intrus.getPosition().getX() - drone.getParcelle().getX(), 2) + Math.pow(intrus.getPosition().getY() - drone.getParcelle().getY(), 2));
-        // Check if the distance is greater than the field of vision radius
+        // Les drones ont un champ de vision de 5
         if (distance < 5) {
             //System.out.println("Drone a détecté joueur\n");
             //System.out.println("Distance : " +distance);
@@ -327,11 +358,10 @@ public class SimuDrones extends Application {
         }
     }
 
-    void updatePlayerPosition(int x, int y) {
+    void updatePlayerPosition(int x, int y) { // Si un drone a un joueur dans son champ de vision, il informe tous les autres drones et leur donne la position du joueur
         lesDrones.forEach(d -> {
-            Direction nouvelleDirection = Direction.getDirectionTo(d.getParcelle().getX(), d.getParcelle().getY(), intrus.getPosition().getX(), intrus.getPosition().getY());
             if (d.lastPlayerPositionX == -1 && d.lastPlayerPositionY == -1) {
-                intrus.setDerniereDetection(System.currentTimeMillis());
+                intrus.setDerniereDetection(System.currentTimeMillis()); // quand un drone ne détecte plus, on récupère à quel moment il n'a plus détecté
             }
             if (d.isMega == true) {
                 d.setLastPlayerPositionX(intrus.getPosition().getX());

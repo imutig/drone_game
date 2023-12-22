@@ -53,7 +53,7 @@ public class ImgParcelle  {
 
     public Parcelle getParcelle() { return parcelle; }
 
-    public void setOpacity(int i) {
+    public void setOpacity(double i) {
         elt.setOpacity(i);
     }
 }

@@ -1,35 +1,21 @@
 package modèle;
 import gui.ImgParcelle;
-/**
- * cette classe represente une parcelle de terrain
- * La parcelle peut etre de type herbe, nid, nourriture, et contenir de la pheromone
- *
- * @author Emmanuel Adam
- */
+ // @author jawad
 public class Parcelle {
-    static final double tauxOubli = 0.01;
+    TypeParcelle type; // Type de la parcelle
 
-    /**type de la parcelle*/
-    TypeParcelle type;
-    /**coordonnee x de la parcelle dans la grille*/
-    final int x;
-    /**coordonnee y de la parcelle dans la grille*/
-    final int y;
-    Parcelle[][] grille;
-    /**representation graphique associee*/
-    ImgParcelle img;
-    private boolean contientDonnee;
+    final int x; // Coordonnée X de la parcelle dans la grille
 
-    /**
-     * constructeur par defaut, inutilise
-     */
+    final int y; // Coordonnée Y de la parcelle dans la grille
+    Parcelle[][] grille; // Grille en elle même
+    ImgParcelle img; // Représentation graphique de la grille
+    private boolean contientDonnee; // Booléan indiquant si la parcelle contient la donnée
+
     public Parcelle() {
         x = y = 0;
     }
 
-    /**
-     * constructeur initialisant la grille, les coordonnees et le type de la parcelle
-     */
+    // Constructeur initialisant une parcelle avec sa position, sa grille, son type et si elle contient une donnée
     public Parcelle(Parcelle[][] grille, int x, int y, TypeParcelle type, boolean contientDonnee) {
         this.x = x;
         this.y = y;

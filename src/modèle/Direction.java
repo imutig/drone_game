@@ -32,26 +32,17 @@ public enum Direction {N(0,-1), NE(1,-1), E(1,0), SE(1,1), S(0,1), SO(-1,1), O(-
 
     /**retourne une direction au hasard*/
     static Direction getRandom() {
-        //TODO: corriger
         return N;    }
 
-    /**retourne la direction inverse a la direction actuelle
-     * ex. retourne NE si dir=SO*/
-    Direction inverse()
-    {
-        //TODO: corriger
-        return this;
-    }
 
 
     /**retourne 5 directions autour de la direction actuelle
      * ex. si direction = N, alors retourne [O, NO, N, NE, E]*/
     Direction[] get5(){
         var tab = new Direction[3];
-        //TODO: corriger
         return tab;
     }
-    public static Direction getDirectionTo(int currentX, int currentY, int x, int y) {
+    public static Direction getDirectionTo(int currentX, int currentY, int x, int y) { // permet d'obtenir la direction vers laquelle se diriger en fonction de la position X,Y actuelle vers une position X,Y autre
         int deltaX = x - currentX;
         int deltaY = y - currentY;
 

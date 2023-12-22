@@ -11,20 +11,20 @@ public class Intrus {
     Parcelle position;
     Environnement environnement;
     Circle circle;
-    private boolean donneeRecuperee = false;
-    private boolean surSortie = false;
-    private boolean hasLost = false;
-    private boolean hasWon = false;
-    private long tempsDeDetection = 0;
+    private boolean donneeRecuperee = false; // Variable qui permet de savoir si la donnee a ete recuperee
+    private boolean surSortie = false; // Variable qui permet de savoir si l'intrus est sur une sortie
+    private boolean hasLost = false; // Variable qui permet de savoir si l'intrus a perdu
+    private boolean hasWon = false; // Variable qui permet de savoir si l'intrus a gagne
+    private long tempsDeDetection = 0; // Variable qui contient le temps durant lequel l'intrus est détecté, pour qu'il perde si ce temps dépasse un temps fixé
 
-    private long derniereDetection = 0;
+    private long derniereDetection = 0; // Variable qui stocke le temps de la dernière fois que l'intrus a été détecté
     public Circle champVision; // Champ de vision
-    private boolean[][] memoire;
-    private long[][] memoireOubli;
+    private boolean[][] memoire; // Tableau qui indique, pour chaque case, si l'intrus se "souvient" (et donc que la case doit être visible)
+    private long[][] memoireOubli; // Tableau qui stocke le temps, pour chaque case, de la mémorisation pour oublier après un certain temps (ici 3s)
 
 
 
-    public Intrus(Environnement environnement, int x, int y) {
+    public Intrus(Environnement environnement, int x, int y) { // Constructeur qui initialise la position de l'intrus, les deux tableaux et l'environnement
         this.environnement = environnement;
         this.position = environnement.getGrille()[x][y];
         memoire = new boolean[environnement.getTaille()][environnement.getTaille()];
@@ -135,7 +135,7 @@ public class Intrus {
             environnement.bougerIntrus(this);
         }
         if (nouvellePosition.getType() == TypeParcelle.Donnee) {
-            // L'intrus marche sur la case bleue, le type de parcelle devient Terrain
+            // L'intrus marche sur la case donnée, le type de parcelle devient Terrain
             nouvellePosition.setType(TypeParcelle.Terrain);
             position = nouvellePosition;
             System.out.println("Donnée prise");
@@ -154,6 +154,11 @@ public class Intrus {
             }
         } else {
             position = nouvellePosition;
+        }
+
+        if (nouvellePosition.getType() != TypeParcelle.Sortie && surSortie == true) { // Si l'intrus marche hors d'une sortie, la variable surSortie est update
+            surSortie = false;
+            System.out.println("Intrus n'est plus sur une sortie\n");
         }
     }
 
